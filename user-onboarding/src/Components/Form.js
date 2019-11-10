@@ -3,7 +3,7 @@ import axios from "axios";
 import { withFormik, Form, Field } from "formik";
 import * as Yup from "yup";
 
-const NewUserForm = ({ values, touched, errors }) => {
+const NewUserForm = ({ values, touched, errors }, props) => {
 
     return(
         <div className="new-user-form">
@@ -63,20 +63,28 @@ const FormikNewUserForm = withFormik({
     },
 
     validationSchema: Yup.object().shape({
-        name: Yup.string().required("Your name is required."),
-        email: Yup.string().required("A valid email is required"),
-        password: Yup.string().required("A password is required."),
+        name: Yup.string().required("Your name is required.")
+                    .min(2, "Your name must be 2 or more characters."),
+        email: Yup.string().required("A valid email is required")
+                    .email("The email must be valid."),
+        password: Yup.string().required("A password is required.")
+                    .min(6, "Password must be 6 or more characters."),
         tos: Yup.boolean().oneOf([true], "You must accept the Terms of Service.")
     }),
 
-    handleSubmit(values) {
+    handleSubmit(values, { props, resetForm, setSubmitting }) {
+        
         axios
             .post("https://reqres.in/api/users/", values)
             .then(res => {
                 console.log(res);
+                props.setUsers(res.data);
+                resetForm();
+                setSubmitting(false);
             })
             .catch(err => {
                 console.log(err);
+                setSubmitting(false);
             });
     }
 })(NewUserForm);
